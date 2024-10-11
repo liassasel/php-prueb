@@ -67,8 +67,25 @@ function getHtml($url) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Devuelve el resultado como un string
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // Seguir redirecciones, si las hay
 
+    //Diferentes User-Agents
+    $userAgents = [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/88.0',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0'
+];
+
     // Simula un navegador estableciendo el User-Agent
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36');
+    curl_setopt($ch, CURLOPT_USERAGENT, $userAgents[array_rand($userAgents)]);
+
+    //Cabeceras adicionales 
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Accept: text/html,application/xhtml+xml,application/xml;q-0.9,image/webp,image/apng,*/ *; q-0.8',
+        'Accept-Language: en-US, en;q=0.9',
+        'Connection: keep-alive',
+        'Upgrade-Insecure-Requests: 1',
+        ]);
+        
 
     // Ejecuta la solicitud
     $html = curl_exec($ch);
@@ -100,7 +117,7 @@ function processVividSeats($html) {
     $xpath = new DOMXPath($dom);
 
     // Busca los elementos de los tickets según la estructura mencionada
-    $tickets = $xpath->query('/html');
+    $tickets = $xpath->query('/html/body/div[2]/div/div[6]/div[1]');
 
     if ($tickets->length > 0) {
         // Itera sobre los resultados y extrae la información
@@ -108,9 +125,9 @@ function processVividSeats($html) {
             // Extraer sector
             $sector = $xpath->query(".//span[@class='section']", $ticket);
             // Extraer fila
-            $row = $xpath->query(".//span[@class='row']", $ticket);
+            $row = $xpath->query("/html/body/div[2]/div/div[6]/div[1]/div[2]", $ticket);
             // Extraer precio
-            $price = $xpath->query(".//span[@class='price']", $ticket);
+            $price = $xpath->query("/html/body/div[2]/div/div[6]/div[1]/div[2]/div[2]/a[1]/div/div/div[3]/div", $ticket);
 
             // Mostrar los datos extraídos
             echo "Sector: " . ($sector->length > 0 ? $sector[0]->nodeValue : "N/A") . "<br>";
@@ -127,5 +144,9 @@ function processVividSeats($html) {
 if ($platform == 'VividSeats') {
     processVividSeats($html); // Se procesa para la página VividSeats
 }
+
+
+echo "<pre>" . htmlspecialchars($html) . "<pre>";
+exit();
 
 ?>
