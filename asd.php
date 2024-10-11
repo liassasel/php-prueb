@@ -100,7 +100,7 @@ function processVividSeats($html) {
     $xpath = new DOMXPath($dom);
 
     // Busca los elementos de los tickets según la estructura mencionada
-    $tickets = $xpath->query('/html');
+    $tickets = $xpath->query('/html/body/div[1]/div[3]/div[2]/div[2]/div[2]/div[1]/div');
 
     if ($tickets->length > 0) {
         // Itera sobre los resultados y extrae la información
