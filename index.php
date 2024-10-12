@@ -66,6 +66,7 @@ function getHtml($url) {
     curl_setopt($ch, CURLOPT_URL, $url); // URL a la que se hará la solicitud 
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Devuelve el resultado como un string
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // Seguir redirecciones, si las hay
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
     //Diferentes User-Agents
     $userAgents = [
@@ -113,21 +114,35 @@ function processVividSeats($html) {
     // Carga el HTML en DOMDocument (suprime warnings con @)
     @$dom->loadHTML($html);
 
+    echo $dom->saveHTML(); // Guarda el html descargado
+
+
     // Crea una instancia de DOMXPath para realizar búsquedas con expresiones XPath
     $xpath = new DOMXPath($dom);
 
+
+
+    //Extrae el contenido del body
+    $bodyContent = $xpath->query('/html');
+    if ($bodyContent->length > 0) {
+        $body =  $bodyContent->item(0); // Esta almancendo el nodo del body
+    }else {
+        die ('No se encontró el cuerpo de la página');
+    }
+
+
     // Busca los elementos de los tickets según la estructura mencionada
-    $tickets = $xpath->query('/html/body/div[2]/div/div[6]/div[1]');
+    $tickets = $xpath->query('//*[@id="content"]/div[6]/div[1]');
 
     if ($tickets->length > 0) {
         // Itera sobre los resultados y extrae la información
         foreach ($tickets as $ticket) {
             // Extraer sector
-            $sector = $xpath->query(".//span[@class='section']", $ticket);
+            $sector = $xpath->query(".//div/div[1]/div", $ticket);
             // Extraer fila
-            $row = $xpath->query("/html/body/div[2]/div/div[6]/div[1]/div[2]", $ticket);
+            $row = $xpath->query(".//div/div[2]/span", $ticket);
             // Extraer precio
-            $price = $xpath->query("/html/body/div[2]/div/div[6]/div[1]/div[2]/div[2]/a[1]/div/div/div[3]/div", $ticket);
+            $price = $xpath->query(".//div/div[3]/span[1]", $ticket);
 
             // Mostrar los datos extraídos
             echo "Sector: " . ($sector->length > 0 ? $sector[0]->nodeValue : "N/A") . "<br>";
